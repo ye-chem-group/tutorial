@@ -50,7 +50,6 @@
 \usepackage{tikz-feynman}
 \tikzfeynmanset{compat=1.1.0}
 
-
 \usepackage{stackengine}
 \newcommand{\vbar}[1]{\stackon[1pt]{$#1$}{\shortmid}}
 
@@ -86,49 +85,203 @@
 
 
     This document collects a few programming projects that help you build basic skills for quantum chemistry programming by turning the methods you learned in Szabo \& Ostlund into computer programs.
-    There are excellent notes/tutorials available on similar topics:
+    In addition to S \& O, you may also find relevant chapters in the book \textit{Molecular Electronic‐Structure Theory} by Helgaker, J{\o}rgensen, and Olsen (HJO) helpful.
+    There are also excellent notes/tutorials available on similar topics:
     \begin{itemize}
         \item Notes by Prof.~David Sherrill: \href{http://vergil.chemistry.gatech.edu/notes/index.html}{link}
-        \item Programming Projects by Prof.~Eugene DePrince: \href{https://www.chem.fsu.edu/~deprince/programming_projects}{link}
-        \item Programming Projects by Prof.~Daniel Crawford: \href{https://github.com/CrawfordGroup/ProgrammingProjects}{link}
-        \item Programming Tutorials by ajz34: \href{https://pycrawfordprogproj.readthedocs.io/en/latest}{link}
+        % \item Programming Projects by Prof.~Eugene DePrince: \href{https://www.chem.fsu.edu/~deprince/programming_projects}{link}
+        \item Programming tutorials by Prof.~Eugene DePrince: \href{https://deprincelab.github.io/tutorials/index.html}{link}
+        \item Programming tutorials by Prof.~Daniel Crawford: \href{https://github.com/CrawfordGroup/ProgrammingProjects}{link}
+        \item Programming tutorials by ajz34: \href{https://pycrawfordprogproj.readthedocs.io/en/latest}{link}
     \end{itemize}
-    When having a hard time with your own code, try to read relevant materials from these notes/tutorials.
+    In what follows, I will refer to relevant materials in these books/tutorials/notes from time to time.
+    My personal experience is that seeing the same materials presented in a slightly different language/notations/order helps understand things.
 
 
     \section{Hartree-Fock (HF)}
 
-    \subsection{Simple fixed point algorithm}
+    \subsection{Theory}
 
-    Using the AO basis integrals provided in the directory \texttt{reference} for a water molecule in the STO-3G basis, write a function that does the spin-restricted HF (RHF) calculations as follows:
-    \begin{verbatim} e_tot, mo_energy, mo_coeff = do_rhf(h, V, S, nocc, enuc)\end{verbatim}
-    where
-    \begin{itemize}
-        \item $h$ and $V$ are the one-electron and two-electron integrals in the AO basis, where $V$ is in the chemists' notations, i.e.,~$(11|22)$.
-        $S$ is the AO basis overlap matrix.
-        These integrals are stored in \texttt{npy} format and can be loaded using \texttt{numpy.load}.
-        \item \texttt{nocc} is the number of occupied orbitals (i.e., half the number of electrons).
-        \item \texttt{enuc} is the nuclear repulsion energy, which is  $9.189222125371913$~Ha for the reference water molecule.
-    \end{itemize}
+    Here's a concise recap of the SCF algorithm for RHF from S\&O:
+    \begin{enumerate}
+        \item Input:
+            \begin{itemize}
+                \item Nuclear repulsion energy $E_{\textrm{nuc}}$
+                \item Number of occupied orbitals $N_{\textrm{occ}} = N_{\textrm{elec}} / 2$
+                \item AO overlap matrix $S_{\mu\nu}$
+                \item 1e integrals (aka $H^{\textrm{core}}$) $h_{\mu\nu}$
+                \item 2e integrals (aka ERIs) $(\mu\nu|\lambda\sigma)$
+            \end{itemize}
+        \item Initial guess:
+        \begin{enumerate}
+            \item Initial MOs from core guess
+            \begin{equation}
+                \mathbf{h} \mathbf{C}^{(0)}
+                    = \mathbf{S} \mathbf{C}^{(0)} \bm{\varepsilon}^{(0)}
+            \end{equation}
+            \item Initial density matrix
+            \begin{equation}
+                D^{(0)}_{\mu\nu}
+                    = 2 \sum_{i}^{\textrm{occ}} C^{(0)}_{\mu i} C^{(0)*}_{\nu i}
+            \end{equation}
+            \item Initial Fock matrix
+            \begin{equation}
+                F^{(0)}_{\mu\nu}
+                    = h_{\mu\nu} + \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)]
+                    D^{(0)}_{\sigma\lambda}
+            \end{equation}
+            \item Initial SCF energy
+            \begin{equation}
+                E^{(0)}_{\textrm{tot}}
+                    = E_{\textrm{nuc}} + \mathrm{Tr}~\mathbf{D}^{(0)} (\mathbf{h} + \mathbf{F}^{(0)})
+            \end{equation}
+        \end{enumerate}
+        \item Entering SCF cycles. In cycle $n$, do
+        \begin{enumerate}
+            \item Update MOs by diagonalizing Fock matrix from last cycle
+            \begin{equation}    \label{eq:fock_eigh}
+                \mathbf{F}^{(n-1)} \mathbf{C}^{(n)}
+                    = \mathbf{S} \mathbf{C}^{(n)} \bm{\varepsilon}^{(n)}
+            \end{equation}
+            \item Update density matrix
+            \begin{equation}
+                D^{(n)}_{\mu\nu}
+                    = 2 \sum_{i}^{\textrm{occ}} C^{(n)}_{\mu i} C^{(n)*}_{\nu i}
+            \end{equation}
+            \item Update SCF energy
+            \begin{equation}    \label{eq:scf_energy}
+                E^{(n)}_{\textrm{tot}}
+                    = E_{\textrm{nuc}} + \mathrm{Tr}~\mathbf{D}^{(n)} (\mathbf{h} + \mathbf{F}^{(n)})
+            \end{equation}
+            \item Check convergence by one or more of the following criteria:
+            \begin{itemize}
+                \item Energy criterion: $|E^{(n)} - E^{(n-1)}| < \epsilon_{\textrm{ene}}$, often chosen to be $10^{-8}$ Ha.
+                \item Density matrix criterion: $\|\mathbf{D}^{(n)} - \mathbf{D}^{(n-1)}\|_{\textrm{F}} < \epsilon_{\textrm{dm}}$, often chosen to be $10^{-4}$~a.u., where $\|\cdot\|_{\textrm{F}}$ stands for the Frobenius norm.
+                \item SCF commutator criterion: $\|\mathbf{F}^{(n)}\mathbf{D}^{(n)}\mathbf{S} - \mathbf{S}\mathbf{D}^{(n)}\mathbf{F}^{(n)}\|_{\textrm{F}} < \epsilon_{\textrm{comm}}$, often chosen to be $10^{-4}$~a.u.
+                [Exercise: prove that this commutator does vanish at convergence, i.e.,~when the Roothaan equation (\ref{eq:fock_eigh}) is satisfied.]
+            \end{itemize}
+            \item If convergence is not achieved, update Fock matrix
+            \begin{equation}    \label{eq:fock_build}
+                F^{(n)}_{\mu\nu}
+                    = h_{\mu\nu} + \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)] D^{(n)}_{\sigma\lambda}
+            \end{equation}
+            and proceed to the next cycle.
+        \end{enumerate}
+    \end{enumerate}
 
-    The reference HF total energy from PySCF is $-74.9631463874825$~Ha.
+    \subsection{Simple SCF code}
 
-    \subsection{DIIS}
+    Implement the SCF algorithm outlined in the previous section for RHF.
+    You may want to first implement it by simply transforming the summation into for loops.
+    Once you confirm the correctness of this na\"ive version, refactor it by replacing for loops with \texttt{numpy} matrix/tensor operations.
+    You may find the following habits make your life much easier:
+    \begin{enumerate}
+        \item Make changes one block/equation at a time and always make sure that the code is still correct after every change.
+        \item Instead of overwriting the old code with new code in place, work on a new copy and keep the old code. In this way you can always go back for sanity checks if you need to.
+    \end{enumerate}
 
-    You may notice that your SCF code, which is based on a simple fixed-point algorithm, takes a few tens of cycles to converge.
-    The convergence can be significantly sped up using the DIIS algorith, which stands for \textit{direct inversion of iterative subspace}.
-    Read any of the tutorials on DIIS (e.g.,~DePrince \texttt{diis} folder; Crawford \texttt{Project \#8}) and implement DIIS for your SCF code.
+    To test your code, in directory \texttt{reference/ints}, you can find the necessary AO integrals $\mathbf{S}$, $\mathbf{h}$, and $\mathbf{V}$ and nuclear repulsion energy $E_{\textrm{nuc}}$ for a water molecule with equilibrium bond length in the STO-3G basis set (stored as \texttt{npy} files, which can be loaded using \texttt{numpy.load}).
+    Use your SCF code to find the RHF ground state for this water molecule.
+    The reference RHF total energy from PySCF is $-74.94502101$~Ha.
+
+
+    \subsection{Couple your code to PySCF}
+
+    Study the script \texttt{reference/generate\_reference.py} for how to generate AO integrals for an arbitrary molecule and basis set.
+    Make your code take integrals and other necessary input parameters directly from PySCF in order to avoid the intermediate steps such as saving integrals to disk and counting electrons manually.
+    Now your code can basically do RHF calculations for any closed-shell molecules!
+    Try it out on the molecular structures provided in \texttt{reference/geom} using different basis sets such as cc-pVDZ, cc-pVTZ, def2-SVP, def2-TZVP in addition to the minimal STO-3G basis set used above.
+    Confirm the correctness of your code against PySCF.
+
+    \begin{enumerate}
+        \item Do RHF calculations for water with equilibrium bond length (\texttt{h2o\_eq.xyz}) using STO-3G, cc-pVDZ, and cc-pVTZ basis sets with both your code and PySCF.
+        Plot the SCF energy error (or either of the other two convergence criteria) as a function of the SCF cycle.
+        Do you observe that (i) your code in general requires many more cycles to convergence than PySCF and (ii) the number of SCF cycles needed for convergence increases more quickly when using a larger basis set?
+        In \cref{subsec:hf_diis}, we will learn a technique to accelerate the SCF convergence.
+
+        \item Do RHF calculations using STO-3G for \texttt{h2o\_2eq.xyz} where both \ce{O-H} bonds in water are stretched to twice of their equilibrium value (use \texttt{avogadro} or \texttt{VESTA} to visually verify this).
+        You may observe that your SCF code fail to converge in this case.
+        Plot the SCF energy as a function of the SCF cycle.
+        Do you see that your SCF energy oscillates between two values?
+        In \cref{subsec:hf_damping}, we will learn a technique to stabilize SCF convergence in cases like this.
+    \end{enumerate}
+
+
+    \subsection{SCF with damping: help convergence in challenging cases}
+    \label{subsec:hf_damping}
+
+    When molecules move away from their equilibrium structure such as in bond stretching, one may encounter SCF convergence problems.
+    An example is \texttt{h2o\_2eq.xyz}, where the two \ce{O-H} bonds in a water molecule are stretched to twice their equilibrium value.
+    If you plot the SCF energy as a function of the SCF cycle, you will see an oscillation between two energies.
+    This suggests that each SCF update is too big and overshoots, causing an oscillation between two competing solutions.
+    The convergence can be improved by simply ``damping'' the SCF update on the density matrix, i.e.,
+    \begin{equation}    \label{eq:rdm1_damp}
+        \tilde{\mathbf{D}}^{(n)}(\beta)
+            = (1-\beta) \mathbf{D}^{(n)} + \beta \mathbf{D}^{(n-1)}
+    \end{equation}
+    where $\beta \in [0,1]$ is an adjustable parameter that controls how strongly we damp the SCF update: $\beta = 0$ means no damping at all and reduces to the normal SCF algorithm, while $\beta = 1$ means completely damped, in which case the density matrix is not updating at all.
+
+    Implement damping in your SCF code.
+    Note that the damping (\ref{eq:rdm1_damp}) should happen right before the Fock build (\ref{eq:fock_build}), i.e.,~the energy evaluation (\ref{eq:scf_energy}) and convergence check should still be done using the unmodified density matrix.
+
+    \begin{enumerate}
+        \item Repeat the RHF calculation for the stretched water molecule with a few different values of $\beta$.
+        You should see SCF convergence is now achievable with a large enough $\beta$.
+        Is a large value for $\beta$ (closer to $1$) always better?
+        \item Try your damped SCF code on water molecule at equilibrium geometry.
+        You should see that convergence is actually slowed down by damping for cases where SCF convergence is easy.
+        So damping is better turned off by default and turned on whenever you encounter a challenging case where the regular SCF fails.
+    \end{enumerate}
+
+
+    \subsection{SCF with DIIS}
+    \label{subsec:hf_diis}
+
+    The SCF algorithm implemented above is the so-called fixed-point method (i.e.,~essentially we are solving $f(x) = x$ for $x$ where $x$ is the density matrix), which is the simplest algorithm for converging SCF.
+    The simple damping discussed above unfortunately does not accelerate the convergence for molecules at equilibrium geometry -- it actually does the opposite and slows down the convergence.
+
+    One popular method to accelerate SCF convergence is the direct inversion of the iterative subspace (DIIS) method, first introduced by Peter Pulay.
+    Read one of the tutorials on DIIS (e.g.,~DePrince \texttt{Hartree-Fock 3}; Crawford \texttt{Project \#8}; HJO 10.6.2) and implement DIIS for your SCF code.
+    You should observe that the number of SCF cycles required for convergence is significantly reduced and close to the PySCF results.
+
+    Hint for implementation: in each SCF cycle, you should still build the Fock matrix $\mathbf{F}^{(n)}$ normally using \cref{eq:fock_build}.
+    But instead of proceeding to the next cycle which will diagonalize $\mathbf{F}^{(n)}$, you update $\mathbf{F}^{(n)}$ to $\tilde{\mathbf{F}}^{(n)}$ according to DIIS, i.e.,
+    \begin{equation}
+        \tilde{\mathbf{F}}^{(n)}
+            = \sum_{m = 0}^{h-1} c_{m} \mathbf{F}^{(n-m)}
+    \end{equation}
+    where $h$ is the length of history, usually chosen to be $8$ -- $16$.
 
 
 
     \section{Second-order Møller-Plesset perturbation theory (MP2)}
 
     MP2 is the simplest electron correlation theory.
-    Implementing a function for calculating the MP2 correlation energy using the RHF solutions generated by your SCF code.
-    Test your implementation using the water/STO-3G system.
-    The reference MP2 energy from PySCF is $-0.0356082692564318$~Ha.
+    In spin-orbital, the MP2 correlation energy reads
+    \begin{equation}    \label{eq:mp2_spinorb}
+        E_{\textrm{corr}}^{\textrm{MP2}}
+            = \frac{1}{4} \sum_{ijab} \frac{|\braket{ij||ab}|^2}{\Delta_{iajb}}
+    \end{equation}
+    where $\Delta_{iajb} = \varepsilon_i + \varepsilon_j - \varepsilon_a - \varepsilon_b$ and $\braket{ij||ab} = \braket{ij|ab} - \braket{ij|ba}$.
+    For a RHF reference, it's more convenient to use the spin-summed formula (we also switched to the chemists' notation for ERIs)
+    \begin{equation}    \label{eq:mp2_spinsummed}
+        E_{\textrm{corr}}^{\textrm{MP2}}
+            = \sum_{ijab} \frac{(ia|jb)^* [2(ia|jb) - (ib|ja)]}{\Delta_{iajb}}
+    \end{equation}
+    where the ERIs are now in spatial orbitals
+    \begin{equation}
+        (ia|jb)
+            = \sum_{\mu\nu\lambda\sigma} (\mu\nu|\lambda\sigma) C^*_{\mu i} C_{\mu a} C^*_{\lambda j} C_{\sigma k}
+    \end{equation}
+    Derive the spin-summed expression (\ref{eq:mp2_spinsummed}) from the spin-orbital formula (\ref{eq:mp2_spinorb}) and convince yourself that they are equivalent to Eqns.~6.74 and 6.72 in S\&O (note that we use modern notations here where $i,j$ denote occupieds and $a,b$ denote virtuals).
 
-    You may find Crawford \texttt{Project \#4} helpful.
+    Implementing a function for calculating the MP2 correlation energy using the RHF solutions generated by either your SCF code or PySCF.
+    Test your implementation using the water/STO-3G system.
+    The reference MP2 energy from PySCF is $-0.03108253$~Ha.
+
+    Hint: (i) You may find Crawford \texttt{Project \#4} helpful.
+    (ii) In our cases all orbitals are real-valued, and you can safely ignore the complex conjugate.
+
 
 
 
