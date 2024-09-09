@@ -65,6 +65,7 @@
 
 \definecolor{myred}{rgb}{0.8,0,0}
 \newcommand{\hzy}[1]{\textbf{\textcolor{myred}{HZY: #1}}}
+\newcommand{\myred}[1]{\textcolor{myred}{#1}}
 
 % \newcommand{\normalordered}[1]{(#1)_{\mr{N}}}
 \newcommand{\normalordered}[1]{\left\{#1\right\}}
@@ -127,13 +128,13 @@
             \item Initial Fock matrix
             \begin{equation}
                 F^{(0)}_{\mu\nu}
-                    = h_{\mu\nu} + \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)]
+                    = h_{\mu\nu} + \myred{\frac{1}{2}} \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)]
                     D^{(0)}_{\sigma\lambda}
             \end{equation}
             \item Initial SCF energy
             \begin{equation}
                 E^{(0)}_{\textrm{tot}}
-                    = E_{\textrm{nuc}} + \mathrm{Tr}~\mathbf{D}^{(0)} (\mathbf{h} + \mathbf{F}^{(0)})
+                    = E_{\textrm{nuc}} + \myred{\frac{1}{2}} \mathrm{Tr}~\mathbf{D}^{(0)} (\mathbf{h} + \mathbf{F}^{(0)})
             \end{equation}
         \end{enumerate}
         \item Entering SCF cycles. In cycle $n$, do
@@ -151,7 +152,7 @@
             \item Update SCF energy
             \begin{equation}    \label{eq:scf_energy}
                 E^{(n)}_{\textrm{tot}}
-                    = E_{\textrm{nuc}} + \mathrm{Tr}~\mathbf{D}^{(n)} (\mathbf{h} + \mathbf{F}^{(n)})
+                    = E_{\textrm{nuc}} + \myred{\frac{1}{2}} \mathrm{Tr}~\mathbf{D}^{(n)} (\mathbf{h} + \mathbf{F}^{(n)})
             \end{equation}
             \item Check convergence by one or more of the following criteria:
             \begin{itemize}
@@ -163,7 +164,7 @@
             \item If convergence is not achieved, update Fock matrix
             \begin{equation}    \label{eq:fock_build}
                 F^{(n)}_{\mu\nu}
-                    = h_{\mu\nu} + \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)] D^{(n)}_{\sigma\lambda}
+                    = h_{\mu\nu} + \myred{\frac{1}{2}} \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)] D^{(n)}_{\sigma\lambda}
             \end{equation}
             and proceed to the next cycle.
         \end{enumerate}
