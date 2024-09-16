@@ -66,6 +66,10 @@
 \definecolor{myred}{rgb}{0.8,0,0}
 \newcommand{\hzy}[1]{\textbf{\textcolor{myred}{HZY: #1}}}
 \newcommand{\myred}[1]{\textcolor{myred}{#1}}
+\definecolor{myblue}{rgb}{0,0,0.8}
+\newcommand{\myblue}[1]{\textcolor{myblue}{#1}}
+\definecolor{mygold}{HTML}{996515}
+\newcommand{\solve}[1]{\textcolor{mygold}{#1}}
 
 % \newcommand{\normalordered}[1]{(#1)_{\mr{N}}}
 \newcommand{\normalordered}[1]{\left\{#1\right\}}
@@ -86,7 +90,7 @@
 
 
     This document collects a few programming projects that help you build basic skills for quantum chemistry programming by turning the methods you learned in Szabo \& Ostlund into computer programs.
-    In addition to S\&O, you may also find relevant chapters in the book \textit{Molecular Electronic-Structure Theory} by Helgaker, J{\o}rgensen, and Olsen (HJO) helpful.
+    In addition to S \& O, you may also find relevant chapters in the book \textit{Molecular Electronic-Structure Theory} by Helgaker, J{\o}rgensen, and Olsen (HJO) helpful.
     There are also excellent notes/tutorials available on similar topics:
     \begin{itemize}
         \item Notes by Prof.~David Sherrill: \href{http://vergil.chemistry.gatech.edu/notes/index.html}{link}
@@ -128,13 +132,15 @@
             \item Initial Fock matrix
             \begin{equation}
                 F^{(0)}_{\mu\nu}
-                    = h_{\mu\nu} + \myred{\frac{1}{2}} \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)]
+                    = h_{\mu\nu} + \myred{\frac{1}{2}}
+                    \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)]
                     D^{(0)}_{\sigma\lambda}
             \end{equation}
             \item Initial SCF energy
             \begin{equation}
                 E^{(0)}_{\textrm{tot}}
-                    = E_{\textrm{nuc}} + \myred{\frac{1}{2}} \mathrm{Tr}~\mathbf{D}^{(0)} (\mathbf{h} + \mathbf{F}^{(0)})
+                    = E_{\textrm{nuc}} + \myred{\frac{1}{2}}
+                    \mathrm{Tr}~\mathbf{D}^{(0)} (\mathbf{h} + \mathbf{F}^{(0)})
             \end{equation}
         \end{enumerate}
         \item Entering SCF cycles. In cycle $n$, do
@@ -152,7 +158,8 @@
             \item Update SCF energy
             \begin{equation}    \label{eq:scf_energy}
                 E^{(n)}_{\textrm{tot}}
-                    = E_{\textrm{nuc}} + \myred{\frac{1}{2}} \mathrm{Tr}~\mathbf{D}^{(n)} (\mathbf{h} + \mathbf{F}^{(n)})
+                    = E_{\textrm{nuc}} + \myred{\frac{1}{2}}
+                    \mathrm{Tr}~\mathbf{D}^{(n)} (\mathbf{h} + \mathbf{F}^{(n)})
             \end{equation}
             \item Check convergence by one or more of the following criteria:
             \begin{itemize}
@@ -164,7 +171,8 @@
             \item If convergence is not achieved, update Fock matrix
             \begin{equation}    \label{eq:fock_build}
                 F^{(n)}_{\mu\nu}
-                    = h_{\mu\nu} + \myred{\frac{1}{2}} \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)] D^{(n)}_{\sigma\lambda}
+                    = h_{\mu\nu} + \myred{\frac{1}{2}}
+                    \sum_{\lambda\sigma} [2 (\mu\nu|\lambda\sigma) - (\mu\sigma|\lambda\nu)] D^{(n)}_{\sigma\lambda}
             \end{equation}
             and proceed to the next cycle.
         \end{enumerate}
@@ -270,7 +278,7 @@
             = \sum_{ijab} \frac{(ia|jb)^* [2(ia|jb) - (ib|ja)]}{\Delta_{iajb}}
     \end{equation}
     where the ERIs are now in spatial orbitals
-    \begin{equation}
+    \begin{equation}    \label{eq:eris_xform}
         (ia|jb)
             = \sum_{\mu\nu\lambda\sigma} (\mu\nu|\lambda\sigma) C^*_{\mu i} C_{\mu a} C^*_{\lambda j} C_{\sigma k}
     \end{equation}
@@ -283,7 +291,28 @@
     Hint: (i) You may find Crawford \texttt{Project \#4} helpful.
     (ii) In our cases all orbitals are real-valued, and you can safely ignore the complex conjugate.
 
-
+    \myblue{Notes on integral transform:
+    If one performs the integral transform using \cref{eq:eris_xform}, the computational cost scales $N_{\textrm{occ}}^2 N_{\textrm{vir}}^2 N_{\textrm{ao}}^2 \sim \mathcal{O}(N^8)$.
+    A smarter way to do this is to break it down into four $\mathcal{O}(N^5)$ steps:
+    \begin{subequations}
+    \begin{align}
+        &(i\nu|\lambda\sigma)
+            = \sum_{\mu} (\mu\nu|\lambda\sigma) C^*_{\mu i}
+        &N_{\textrm{occ}} N_{\textrm{ao}}^4 \sim \mathcal{O}(N^5) \\
+        &(i\nu|j\sigma)
+            = \sum_{\lambda} (i\nu|\lambda\sigma) C^*_{\lambda j}
+        &N_{\textrm{occ}}^2 N_{\textrm{ao}}^3 \sim \mathcal{O}(N^5) \\
+        &(ia|j\sigma)
+            = \sum_{\nu} (i\nu|j\sigma) C_{\nu a}
+        &N_{\textrm{occ}}^2 N_{\textrm{vir}} N_{\textrm{ao}}^2 \sim \mathcal{O}(N^5) \\
+        &(ia|jb)
+            = \sum_{\sigma} (ia|j\sigma) C_{\sigma b}
+        &N_{\textrm{occ}}^2 N_{\textrm{vir}}^2 N_{\textrm{ao}} \sim \mathcal{O}(N^5)
+    \end{align}
+    \end{subequations}
+    Once the $(ov|ov)$-type integrals are obtained, evaluating the MP2 correlation energy using \cref{eq:mp2_spinsummed} requires only $N_{\textrm{occ}}^2 N_{\textrm{vir}}^2 \sim \mathcal{O}(N^4)$ cost, which is lower than the integral transform step.
+    Therefore, the cost of MP2 is dominated by integral transformation, which scales as $\mathcal{O}(N^5)$.
+    }
 
 
     % \section{MP2 with density fitting}
