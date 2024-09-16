@@ -47,15 +47,8 @@ def energy_total(h, f, dm, e_nuc):
     return 0.5 * np.trace( np.dot(dm, h+f) ) + e_nuc
 
 
-if __name__ == '__main__':
-    ints_path = '../reference/ints'
-    h = np.load(f'{ints_path}/h.npy')
-    V = np.load(f'{ints_path}/V.npy')
-    S = np.load(f'{ints_path}/S.npy')
-    e_nuc = np.load(f'{ints_path}/enuc.npy')
-
+def calculate_hf(h, V, S, e_nuc, nelectron):
     nao = h.shape[0]
-    nelectron = 10
     nocc = nelectron // 2
     max_cycle = 50
     conv_tol = 1e-8 # energy
@@ -106,3 +99,16 @@ if __name__ == '__main__':
     else:
         print('Ooooops! Convergence failed after %d cycles' % (max_cycle))
         print('Unconverged SCF energy is %.15g' % (e_tot))
+
+    return e_tot, mo_energy, mo_coeff
+
+
+if __name__ == '__main__':
+    ints_path = '../reference/ints'
+    h = np.load(f'{ints_path}/h.npy')
+    V = np.load(f'{ints_path}/V.npy')
+    S = np.load(f'{ints_path}/S.npy')
+    e_nuc = np.load(f'{ints_path}/enuc.npy')
+    nelectron = 10
+
+    calculate_hf(h, V, S, e_nuc, nelectron)
