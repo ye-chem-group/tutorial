@@ -31,7 +31,7 @@ cmake ../
 make -j$ncore
 ```
 
-You can check if PySCF is appropriately installed by
+You can check if PySCF is appropriately installed by (replace `[your_path_to_pyscf]` with your path to PySCF)
 ```shell
 export PYTHONPATH=[your_path_to_pyscf]:$PYTHONPATH
 python -c "import pyscf"
@@ -55,7 +55,7 @@ basis = 'cc-pvdz'
 mol = gto.M(atom=atom, basis=basis).set(verbose=4)
 mf = scf.RHF(mol).run()
 ```
-Save the following to `submit.sh`:
+Save the following to `submit.sh` (replace `[youremailaddress]` and `[your_path_to_pyscf]` to appropriate values)
 ```shell
 #!/bin/bash
 
