@@ -117,3 +117,7 @@ cd build
 cmake ../
 make -j$ncore
 ```
+When running jobs using the `lno` module, remember to add the path to `PYTHONPATH` in the script `submit.sh`, i.e.,
+```shell
+export PYTHONPATH=[your_path_to_pyscf]:${PYTHONPATH}:[your_path_to_lno]
+```
