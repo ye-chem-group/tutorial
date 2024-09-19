@@ -70,10 +70,6 @@ Save the following to `submit.sh` (replace `[youremailaddress]` and `[your_path_
 
 module restore pyscf
 
-echo "after module load"
-echo $PYTHONPATH
-echo
-
 export PYTHONPATH=[your_path_to_pyscf]:${PYTHONPATH}
 
 export OMP_NUM_THREADS=4
