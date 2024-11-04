@@ -9,20 +9,24 @@ log = lib.logger.Logger(sys.stdout, 6)
 
 if __name__ == '__main__':
     try:
-        kmesh = [int(x) for x in sys.argv[1]]
-        max_memory = float(sys.argv[2]) * 950   # GB to MB with a conservative factor 0.95
+        fchk = sys.argv[1]
+        basis = sys.argv[2]
+        alat = float(sys.argv[3])   # cubic lattice constant for diamond at equilibrium
+        pseudo = sys.argv[4]
+        if pseudo.lower() == 'none': pseudo = None  # all-electron
+        kmesh = [int(x) for x in sys.argv[5]]
+        max_memory = float(sys.argv[6]) * 950   # GB to MB with a conservative factor 0.95
     except:
-        log.info('Usage: kmesh, max_memory (in GB)')
+        log.info('Usage: fchk, basis, alat, pseudo, kmesh, max_memory (in GB)')
         sys.exit(1)
 
     log.info('Input args:')
+    log.info('fchk = %s', fchk)
+    log.info('basis = %s', basis)
+    log.info('alat = %s', alat)
     log.info('kmesh = %s', kmesh)
     log.info('max_memory = %s', max_memory)
     log.info('\n')
-
-    alat = 3.567    # cubic lattice constant for diamond at equilibrium
-    basis = 'cc-pvdz'
-    pseudo = None   # all-electron
 
     atom = f'''
     C    0.0000000000    0.0000000000    0.0000000000
@@ -42,6 +46,7 @@ if __name__ == '__main__':
     # unit cell + kpts
     kpts = cell.make_kpts(kmesh)
     kmf = scf.KRHF(cell, kpts=kpts).density_fit()
+    kmf.chkfile = fchk
     kmf.kernel()
     ehf_kpt = kmf.e_tot
 
