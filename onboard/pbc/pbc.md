@@ -35,7 +35,7 @@ One key difference between solids and molecules is that solids are intrinsically
 
 5. Now let's repeat the analysis for correlation energy evaluated at MP2 level. In `pbc/script/kpts_mp2` ([link](https://github.com/ye-chem-group/tutorial/tree/main/onboard/pbc/script/kpts_mp2)), an example pyscf script is provided, together with a shell script for automatically submitting jobs (Don't forget to set the `pyscf_path` variable before running it). [Optional] Before you run these calculations, it may be helpful to install a modified KMP2 code I wrote that in general runs 10x faster ([link](https://github.com/hongzhouye/pyscf/blob/pbc_mp2)). Following these steps:
     - copy `pyscf/pbc/mp/kmp2.py` to your pyscf directory
-    - copy the entire directory `pyscf/lib/mp` to your pyscf directory
+    - copy the entire directory `pyscf/lib/mp` to your pyscf directory (note: if `pyscf/lib/mp` already exists, you only need to copy the file `pyscf/lib/mp/kmp2.c` and add "kmp2.c" to this [line](https://github.com/hongzhouye/pyscf/blob/pbc_mp2/pyscf/lib/mp/CMakeLists.txt#L16))
     - add this [line](https://github.com/hongzhouye/pyscf/blob/pbc_mp2/pyscf/lib/CMakeLists.txt#L139) to `pyscf/lib/CMakeLists.txt`
     - recompile pyscf
 
@@ -48,3 +48,14 @@ One key difference between solids and molecules is that solids are intrinsically
 9. [Optional] Read David Sherrill's excellent [notes on BSSE](http://vergil.chemistry.gatech.edu/notes/cp.pdf). Re-do the calculation of a single carbon atom with ghost atoms from the nearest neighbor to correct for BSSE (for diamond, there are 4 nearest neighbors). How does this change your estimated $E_{\mathrm{coh}}$? (For learning how to use ghost atoms in PySCF, simply google "pyscf ghost atoms".)
 
 10. [Optional] To correct for the finite-basis error, we can use a larger basis set, e.g., cc-pVTZ, and repeat all the calculations above. An alternative to this brute-force approach (which can become very expensive especially for large k-point meshes) is to use some composite correction, `E(TZ,TDL) ≈ E(TZ,Nk_small) + E(DZ,TDL) - E(DZ,Nk_small)`, where `Nk_small` is a small k-point mesh where a TZ calculation is affordable. Obviously, the larger `Nk_small` is, the more accurate the composite correction will be. Perform TZ calculations using `Nk = 1^3, 2^3, 3^3, 4^3` and calculate the corresponding composite correction-estimated `E(TZ,TDL)`. Using `Nk = 4^3` as a reference, what is the minimum `Nk` needed to achieve accuracy better than 1 kcal/mol per atom?
+
+
+### Equation of State (EOS)
+
+In the exerise above, we investigated the convergence with `Nk` for a single geometry (chosen to be the equilibrium lattice constant `a = 3.567 Å`). From now on we switch gear to study energy change when we squeeze or stretch a crystal. In particular, we will calculate energy as a function of cell volume, `E(V)`, which is often referred to as the equation of state (EOS) curve.
+
+1. Perform KRHF calculations for diamond with cell volume in the range of 90% to 110% of the equilibrium value using the scripts provided in `pbc/script/scan_cellvol` ([link](https://github.com/ye-chem-group/tutorial/tree/main/onboard/pbc/script/scan_cellvol)). This script uses the cc-pVDZ basis set and a 3x3x3 k-point mesh.
+
+2. Modify the script for MP2 calculations from above to perform MP2 calculations for the same range of cell volumes using the saved KRHF chkfiles.
+
+3. Obtain HF and MP2 energy as a function of cell volume. The `E(V)` data are often fitted to the [Birch-Murnaghan EOS](https://en.wikipedia.org/wiki/Birch%E2%80%93Murnaghan_equation_of_state). An example script is provided in `pbc/script/eos_fit` ([link](https://github.com/ye-chem-group/tutorial/tree/main/onboard/pbc/script/eos_fit)) for fitting given `E(V)` data to the BM-EOS. Use it to fit your own HF and MP2 data to obtain the equilibrium lattice constant (`a0`) and bulk modulus (`B0`). Compare your results to those listed in Table II and III in this [JCP paper](https://doi.org/10.1063/5.0119633). Your results should be close to the reference. The remaining difference is caused by (i) basis set incompleteness error (DZ isn't enough) and (ii) finite-size error (3x3x3 k-point mesh isn't enough).
