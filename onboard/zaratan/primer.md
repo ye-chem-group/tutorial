@@ -104,6 +104,8 @@ where `R` indicates the job is running.
 
 ## Installing LNO
 
+Ignore this part if you are only interested in installing PySCF.
+
 Clone the lno repository and checkout the `ccsd_t_clean` branch
 ```shell
 git clone https://github.com/hongzhouye/lno.git
