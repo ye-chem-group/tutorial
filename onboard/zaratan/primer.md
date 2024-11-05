@@ -2,11 +2,11 @@
 
 Load the following modules
 ```
-module load gcc/11.3.0
-module load cmake/3.26.3/gcc/11.3.0/zen2
-module load openmpi/gcc/11.3.0/zen2/4.1.5
+module load gcc
+module load cmake
+module load openmpi
 module load python
-module load intel-mkl/gcc/11.3.0/openmpi/4.1.5/zen2/2023.0.0
+module load intel-mkl
 module save pyscf
 ```
 where the last line saves these module settings. Later you can quickly load all the modules above by
