@@ -22,7 +22,7 @@ Once appropriate modules are loaded, compiling PySCF from source should be strai
 git clone https://github.com/pyscf/pyscf.git
 cd pyscf
 ```
-2. Compile (change `ncore` if needed):
+2. Change to the `pyscf/lib` directory and compile (change `ncore` if needed):
 ```shell
 ncore=4
 rm -rf build
