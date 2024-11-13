@@ -32,7 +32,7 @@ cmake ../
 make -j$ncore
 ```
 
-You can check if PySCF is appropriately installed by (replace `[your_path_to_pyscf]` with your path to PySCF)
+You can check if PySCF is appropriately installed by (replace `[your_path_to_pyscf]` with your path to PySCF; remove the braket)
 ```shell
 export PYTHONPATH=[your_path_to_pyscf]:$PYTHONPATH
 python -c "import pyscf"
