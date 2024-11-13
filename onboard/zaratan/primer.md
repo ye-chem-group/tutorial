@@ -27,6 +27,7 @@ cd pyscf
 ncore=4
 rm -rf build
 mkdir -p build
+cd build
 cmake ../
 make -j$ncore
 ```
