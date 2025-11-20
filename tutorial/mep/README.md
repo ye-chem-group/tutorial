@@ -61,7 +61,7 @@ Chimera ([link](https://www.cgl.ucsf.edu/chimera/download.html)) is a very good 
 
 #### Step 3: Color the density isosurface with MEP
 1. Load MEP: `Tools -> Surface color -> By electrostatic potential -> browse -> mep.cube`
-2. I recommend setting `MEP = -0.03, 0, +0.03` to be red, white, and blue. A negative/positive MEP means electron rich/poor region.
+2. I recommend setting `MEP = -0.03, 0, +0.03` to be red, white, and blue. A negative/positive MEP means electron rich/poor region. Adjust the transparency for each color (I used `0.7`) so that the molecular structure is visiable.
 
 <img src="https://github.com/ye-chem-group/tutorial/blob/main/tutorial/mep/.resources/mep_color.png" width="600">
 
