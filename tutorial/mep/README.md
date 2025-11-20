@@ -55,7 +55,7 @@ Chimera ([link](https://www.cgl.ucsf.edu/chimera/download.html)) is a very good 
 
 ##### Step 2: Create electron density isosurface
 1. Load electron density: `Tools -> Volume Data -> Volume Viewer -> File -> Open map -> den.cube`
-2. Adjust `Level` to `0.02`, which roughly corresponds to the vdW surface
+2. Adjust `Level` to `0.002`, which roughly corresponds to the vdW surface
 
 <img src="https://github.com/ye-chem-group/tutorial/blob/main/tutorial/mep/.resources/den.png" width="500">
 
