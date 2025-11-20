@@ -44,12 +44,18 @@ Chimera ([link](https://www.cgl.ucsf.edu/chimera/download.html)) is a very good 
 2. Change to ball & stick style: `Actions -> Atoms/Bonds -> ball & stick`
 3. Change color: `Actions -> Color -> By element`
 
+<img src="https://github.com/ye-chem-group/tutorial/blob/main/tutorial/mep/.resources/mol.png" width="400">
+
 ##### Step 2: Create electron density isosurface
 1. Load `den.cube`: `Tools -> Volume Data -> Volume Viewer -> File -> Open map -> den.cube`
 2. Adjust `Level` to `0.02`, which roughly corresponds to the vdW surface
+
+<img src="https://github.com/ye-chem-group/tutorial/blob/main/tutorial/mep/.resources/den.png" width="500">
 
 #### Step 3: Color the density isosurface with MEP
 1. Load `mep.cube`: `Tools -> Surface color -> By electrostatic potential -> browse -> mep.cube`
 2. I recommend setting `MEP = -0.03, 0, +0.03` to be red, while, and blue. A negative/positive MEP means electron rich/poor region.
 
+<img src="https://github.com/ye-chem-group/tutorial/blob/main/tutorial/mep/.resources/mep_color.png" width="600">
 
+We see that the MEP for CH3OH is red near the oxygen atom and blue near the hydrogen atom in the OH group, which is consistent with our chemical intuition that oxygen is electron rich and hydrogen is electron poor in an OH group.
