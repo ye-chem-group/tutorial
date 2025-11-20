@@ -44,7 +44,7 @@ This script Gaussian cube files for both the electron density and the MEP. The e
 
 ### Plot MEP using Chimera
 
-Chimera ([link](https://www.cgl.ucsf.edu/chimera/download.html)) is a very good software for visualizing molecular structure and properties, including MEP. The following steps follow primarily the tutorial by Cadillac Chemistry ([link](https://www.youtube.com/watch?v=cE5YY77XXUs)). The first part of the video is about using ORCA to generate the electron density and MEP cube files, which we already did using PySCF. So you can jump directly to 6:19 of the video for the Chimera part.
+Chimera ([link](https://www.cgl.ucsf.edu/chimera/download.html)) is a very good software for visualizing molecular structure and properties, including MEP. The following steps follow primarily the video tutorial by Cadillac Chemistry ([link](https://www.youtube.com/watch?v=cE5YY77XXUs)). The relevant part starts from 6:20.
 
 ##### Step 1: Load molecular structure
 1. Load xyz file: `File -> Open -> ch3oh.xyz`
@@ -54,13 +54,13 @@ Chimera ([link](https://www.cgl.ucsf.edu/chimera/download.html)) is a very good 
 <img src="https://github.com/ye-chem-group/tutorial/blob/main/tutorial/mep/.resources/mol.png" width="400">
 
 ##### Step 2: Create electron density isosurface
-1. Load `den.cube`: `Tools -> Volume Data -> Volume Viewer -> File -> Open map -> den.cube`
+1. Load electron density: `Tools -> Volume Data -> Volume Viewer -> File -> Open map -> den.cube`
 2. Adjust `Level` to `0.02`, which roughly corresponds to the vdW surface
 
 <img src="https://github.com/ye-chem-group/tutorial/blob/main/tutorial/mep/.resources/den.png" width="500">
 
 #### Step 3: Color the density isosurface with MEP
-1. Load `mep.cube`: `Tools -> Surface color -> By electrostatic potential -> browse -> mep.cube`
+1. Load MEP: `Tools -> Surface color -> By electrostatic potential -> browse -> mep.cube`
 2. I recommend setting `MEP = -0.03, 0, +0.03` to be red, white, and blue. A negative/positive MEP means electron rich/poor region.
 
 <img src="https://github.com/ye-chem-group/tutorial/blob/main/tutorial/mep/.resources/mep_color.png" width="600">
